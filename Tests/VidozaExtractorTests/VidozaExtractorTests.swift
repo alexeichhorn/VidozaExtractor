@@ -2,14 +2,38 @@ import XCTest
 @testable import VidozaExtractor
 
 final class VidozaExtractorTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(VidozaExtractor().text, "Hello, World!")
+    
+    func testSourceURL(_ sourceURL: URL) -> URL? {
+        
+        let expectation = self.expectation(description: "extraction")
+        var url: URL?
+        
+        VidozaExtractor.extract(fromURL: sourceURL) { videoURL in
+            url = videoURL
+            expectation.fulfill()
+        }
+        
+        waitForExpectations(timeout: 20.0, handler: nil)
+        
+        return url
     }
+    
+    func testUnavailableURL() {
+        let url = testSourceURL(URL(string: "https://vidoza.net/embed-z3gtgg6ezddb.html")!)
+        
+        XCTAssertNil(url)
+    }
+    
+    func testBunnyVideo() {
+        let url = testSourceURL(URL(string: "https://vidoza.net/embed-6mdl4lhngypq.html")!)
+        
+        XCTAssertNotNil(url)
+        XCTAssertEqual(url?.pathExtension, "mp4")
+    }
+    
 
     static var allTests = [
-        ("testExample", testExample),
+        ("testUnavailableURL", testUnavailableURL),
+        ("testBunnyVideo", testBunnyVideo)
     ]
 }
