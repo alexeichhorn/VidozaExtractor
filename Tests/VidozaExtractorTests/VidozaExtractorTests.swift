@@ -25,7 +25,7 @@ final class VidozaExtractorTests: XCTestCase {
     }
     
     func testBunnyVideo() {
-        let url = testSourceURL(URL(string: "https://vidoza.net/embed-6mdl4lhngypq.html")!)
+        let url = testSourceURL(URL(string: "https://vidoza.net/embed-eejmlkkjw45s.html")!)
         
         XCTAssertNotNil(url)
         XCTAssertEqual(url?.pathExtension, "mp4")
