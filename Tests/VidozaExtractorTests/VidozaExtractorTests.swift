@@ -24,11 +24,30 @@ final class VidozaExtractorTests: XCTestCase {
         XCTAssertNil(url)
     }
     
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    func testUnavailableURLAsync() async {
+        let url = URL(string: "https://vidoza.net/embed-z3gtgg6ezddb.html")!
+        do {
+            _ = try await VidozaExtractor.extract(fromURL: url)
+            XCTFail("didn't throw")
+        } catch let error {
+            XCTAssertEqual(error as? VidozaExtractor.ExtractionError, .videoNotFound)
+        }
+    }
+    
     func testBunnyVideo() {
         let url = testSourceURL(URL(string: "https://vidoza.net/embed-eejmlkkjw45s.html")!)
         
         XCTAssertNotNil(url)
         XCTAssertEqual(url?.pathExtension, "mp4")
+    }
+    
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    func testBunnyVideoAsync() async throws {
+        let url = URL(string: "https://vidoza.net/embed-eejmlkkjw45s.html")!
+        let videoURL = try await VidozaExtractor.extract(fromURL: url)
+        
+        XCTAssertEqual(videoURL.pathExtension, "mp4")
     }
     
 
