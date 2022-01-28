@@ -10,4 +10,7 @@ VidozaExtractor.extract(fromURL: url) { videoURL in
     // do stuff with retrieved videoURL
 }
 ```
-
+or using async/await:
+```swift
+let videoURL = try await VidozaExtractor.extract(fromURL: url)
+```
