@@ -1,4 +1,5 @@
 import Foundation
+import URLSessionWrapper
 
 public class VidozaExtractor {
     
@@ -8,11 +9,21 @@ public class VidozaExtractor {
         case invalidVideoURL
     }
     
+    let urlSession: URLSessionWrapper
+    
+    #if !os(Linux)
+    static let `default` = VidozaExtractor(urlSession: .default)
+    #endif
+    
+    public init(urlSession: URLSessionWrapper) {
+        self.urlSession = urlSession
+    }
+    
     /// extracts direct video url from raw html of embedded vidoza page
     /// - parameter html: HTML of video page on vidoza embedded frame
     /// - throws: ExtractionError
     /// - returns: video url when found
-    public class func extract(fromHTML html: String) throws -> URL {
+    public func extract(fromHTML html: String) throws -> URL {
         
         let pattern = #"<source .*src="(?<url>\S*)"[^>]+>"#
         let regex = try? NSRegularExpression(pattern: pattern, options: [])
@@ -39,19 +50,23 @@ public class VidozaExtractor {
     /// extracts direct video url from standard or embedded vidoza url
     /// - parameter url: vidoza url (e.g.: https://vidoza.net/embed-z3gtfm6ezhvb.html)
     /// - parameter completion: called when result is found. returns video url
-    public class func extract(fromURL url: URL, completion: @escaping (URL?) -> Void) {
+    public func extract(fromURL url: URL, completion: @escaping (URL?) -> Void) {
         
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data,
-                let htmlContent = String(data: data, encoding: .utf8) else {
+        let request = URLSessionWrapper.Request(url: url)
+        urlSession.handleRequest(request) { result in
+            switch result {
+            case .success(let response):
+                guard let htmlContent = String(data: response.data, encoding: .utf8) else {
+                    completion(nil)
+                    return
+                }
+                
+                completion(try? self.extract(fromHTML: htmlContent))
+                
+            case .failure(_):
                 completion(nil)
-                return
             }
-            
-            completion(try? extract(fromHTML: htmlContent))
-            
-        }.resume()
-        
+        }        
     }
     
     
@@ -59,11 +74,12 @@ public class VidozaExtractor {
     /// - parameter url: vidoza url (e.g.: https://vidoza.net/embed-z3gtfm6ezhvb.html)
     /// - returns: direct video url
     @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
-    public class func extract(fromURL url: URL) async throws -> URL {
+    public func extract(fromURL url: URL) async throws -> URL {
         
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let request = URLSessionWrapper.Request(url: url)
+        let response = try await urlSession.handleRequest(request)
         
-        guard let htmlContent = String(data: data, encoding: .utf8) else {
+        guard let htmlContent = String(data: response.data, encoding: .utf8) else {
             throw ExtractionError.htmlDecodingError
         }
         
