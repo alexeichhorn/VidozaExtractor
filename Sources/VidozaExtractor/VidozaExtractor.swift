@@ -12,7 +12,7 @@ public class VidozaExtractor {
     let urlSession: URLSessionWrapper
     
     #if !os(Linux)
-    static let `default` = VidozaExtractor(urlSession: .default)
+    public static let `default` = VidozaExtractor(urlSession: .default)
     #endif
     
     public init(urlSession: URLSessionWrapper) {
