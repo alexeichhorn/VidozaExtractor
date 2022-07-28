@@ -2,7 +2,7 @@ import Foundation
 
 public class VidozaExtractor {
     
-    enum ExtractionError: Error {
+    public enum ExtractionError: Error {
         case htmlDecodingError
         case videoNotFound
         case invalidVideoURL
